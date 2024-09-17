@@ -174,6 +174,7 @@ window.addEventListener("load", () => {
     };
 
     const handleStart = (e) => {
+      if (e.touches && e.touches.length > 1) return; // Ignore multi-touch
       updateCursor(e);
       if (slider.style.cursor === "col-resize") {
         e.preventDefault();
@@ -183,6 +184,7 @@ window.addEventListener("load", () => {
     };
 
     const handleMove = (e) => {
+      if (e.touches && e.touches.length > 1) return; // Ignore multi-touch
       updateCursor(e);
       if (!isResizing) return;
       e.preventDefault();
@@ -195,7 +197,7 @@ window.addEventListener("load", () => {
     };
 
     slider.addEventListener("mousedown", handleStart);
-    slider.addEventListener("touchstart", handleStart);
+    slider.addEventListener("touchstart", handleStart, { passive: false });
     slider.addEventListener("mousemove", handleMove);
     slider.addEventListener("touchmove", handleMove, { passive: false });
     document.addEventListener("mouseup", handleEnd);
@@ -222,6 +224,35 @@ window.addEventListener("load", () => {
         animationFrameId = null;
       }
     };
+
+    let touchStartX, touchStartY, touchStartTime;
+
+    const handleTouchStart = (e) => {
+      if (e.touches.length > 1) return;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchStartTime = Date.now();
+    };
+
+    const handleTouchEnd = (e) => {
+      if (isResizing) return;
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+      const touchEndTime = Date.now();
+
+      const distanceX = Math.abs(touchEndX - touchStartX);
+      const distanceY = Math.abs(touchEndY - touchStartY);
+      const duration = touchEndTime - touchStartTime;
+
+      if (distanceX < 10 && distanceY < 10 && duration < 200) {
+        handleClick(e.changedTouches[0]);
+      }
+    };
+
+    slider.addEventListener("touchstart", handleTouchStart, { passive: true });
+    slider.addEventListener("touchend", handleTouchEnd, { passive: true });
+    // Remove the click event listener
+    // slider.removeEventListener("click", handleClick);
 
     const handleClick = (e) => {
       if (isResizing) return;
@@ -283,7 +314,7 @@ window.addEventListener("load", () => {
   function handleResize() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-      createSliders(); // Re-create all sliders
+      resizeAllSliders(); // Resize instead of recreate
     }, 250); // Debounce for 250ms
   }
 
