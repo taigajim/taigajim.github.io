@@ -28,6 +28,8 @@ body {
   position: relative;
   display: inline-block;
   cursor: col-resize;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .slider-image {
@@ -49,7 +51,7 @@ body {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 4px;
+  width: 2px;
   background-color: white;
   left: 50%;
   transform: translateX(-50%);

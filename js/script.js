@@ -21,30 +21,16 @@ window.addEventListener("load", () => {
   }
 
   async function scanImageDirectory() {
-    const response = await fetch("./imgSlider/");
-    const html = await response.text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, "text/html");
-    const links = Array.from(doc.querySelectorAll("a"));
-
-    const images = links
-      .map((link) => link.href)
-      .filter((href) => href.match(/\.(jpg|jpeg|png|gif)$/i));
-
-    imagePairs = images.reduce((pairs, image) => {
-      const baseName = image.replace(/(_a|_b)\.(jpg|jpeg|png|gif)$/i, "");
-      const pair = pairs.find((p) => p.name === baseName) || {
-        name: baseName,
-        before: "",
-        after: "",
-      };
-
-      if (image.includes("_a.")) pair.before = image;
-      else if (image.includes("_b.")) pair.after = image;
-
-      if (!pairs.includes(pair)) pairs.push(pair);
-      return pairs;
-    }, []);
+    try {
+      const response = await fetch("imgSlider/image_list.json");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      imagePairs = await response.json();
+    } catch (error) {
+      console.error("Error fetching image list:", error);
+      throw error;
+    }
   }
 
   async function preloadImages() {
@@ -178,12 +164,32 @@ window.addEventListener("load", () => {
       isResizing = false;
     };
 
+    // Modified handleWheel function to prevent resetting
+    const handleWheel = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const delta = e.deltaY;
+      const step = 0.99; // Reduced step size for slower movement
+      const currentLeft = parseFloat(sliderButton.style.left);
+      // If currentLeft is NaN (initial state), set it to 50
+      const startLeft = isNaN(currentLeft) ? 50 : currentLeft;
+      const newLeft = Math.max(
+        0,
+        Math.min(100, startLeft - (delta * step) / 100)
+      );
+      updateClipPath(
+        slider.getBoundingClientRect().left +
+          (slider.offsetWidth * newLeft) / 100
+      );
+    };
+
     slider.addEventListener("mousedown", handleStart);
     slider.addEventListener("touchstart", handleStart);
     document.addEventListener("mousemove", handleMove);
     document.addEventListener("touchmove", handleMove, { passive: false });
     document.addEventListener("mouseup", handleEnd);
     document.addEventListener("touchend", handleEnd);
+    slider.addEventListener("wheel", handleWheel, { passive: false });
 
     Promise.all([
       new Promise((resolve) => (sliderBefore.onload = resolve)),
@@ -200,6 +206,7 @@ window.addEventListener("load", () => {
 
     return () => {
       window.removeEventListener("resize", setSliderDimensions);
+      slider.removeEventListener("wheel", handleWheel);
     };
   }
 
