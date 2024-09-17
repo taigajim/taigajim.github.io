@@ -106,6 +106,7 @@ window.addEventListener("load", () => {
     sliderButton
   ) {
     let isResizing = false;
+    let animationFrameId = null;
 
     const updateClipPath = (x) => {
       const imageRect = sliderBefore.getBoundingClientRect();
@@ -202,6 +203,43 @@ window.addEventListener("load", () => {
     slider.addEventListener("mouseleave", () => {
       slider.style.cursor = "default";
     });
+
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+    const animateSlider = (startX, endX, startTime, duration) => {
+      const currentTime = Date.now() - startTime;
+      const progress = Math.min(currentTime / duration, 1);
+      const easedProgress = easeOutCubic(progress);
+      const currentX = startX + (endX - startX) * easedProgress;
+
+      updateClipPath(currentX);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(() =>
+          animateSlider(startX, endX, startTime, duration)
+        );
+      } else {
+        animationFrameId = null;
+      }
+    };
+
+    const handleClick = (e) => {
+      if (isResizing) return;
+      const sliderRect = slider.getBoundingClientRect();
+      const clickX = e.clientX || e.touches[0].clientX;
+      const startX =
+        (parseFloat(sliderButton.style.left) / 100) * sliderRect.width +
+        sliderRect.left;
+      const endX = clickX;
+
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+
+      animateSlider(startX, endX, Date.now(), 300); // 300ms duration for the animation
+    };
+
+    slider.addEventListener("click", handleClick);
 
     Promise.all([
       new Promise((resolve) => (sliderBefore.onload = resolve)),
