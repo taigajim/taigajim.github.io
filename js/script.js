@@ -22,11 +22,17 @@ window.addEventListener("load", () => {
 
   async function loadImageList() {
     try {
+      console.log("Fetching image list...");
       const response = await fetch("imgSlider/image_list.json");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      imagePairs = await response.json();
+      const data = await response.json();
+      console.log("Loaded image list:", data);
+      imagePairs = data;
+      if (!Array.isArray(imagePairs) || imagePairs.length === 0) {
+        throw new Error("Invalid or empty image list");
+      }
     } catch (error) {
       console.error("Error loading image list:", error);
       throw error;
@@ -52,9 +58,23 @@ window.addEventListener("load", () => {
   }
 
   function updateSlider(index) {
-    currentPairIndex = index;
+    if (!imagePairs || imagePairs.length === 0) {
+      console.error("No image pairs available");
+      handleError(new Error("No image pairs available"));
+      return;
+    }
+
+    currentPairIndex = Math.max(0, Math.min(index, imagePairs.length - 1));
     slidersContainer.innerHTML = "";
-    const slider = createSlider(imagePairs[index]);
+    const pair = imagePairs[currentPairIndex];
+
+    if (!pair) {
+      console.error(`No pair found at index ${currentPairIndex}`);
+      handleError(new Error(`No pair found at index ${currentPairIndex}`));
+      return;
+    }
+
+    const slider = createSlider(pair);
     slidersContainer.appendChild(slider);
 
     // Store the cleanup function
@@ -71,6 +91,12 @@ window.addEventListener("load", () => {
   }
 
   function createSlider(pair) {
+    if (!pair || !pair.name || !pair.before || !pair.after) {
+      console.error("Invalid pair object", pair);
+      handleError(new Error("Invalid pair object"));
+      return document.createElement("div"); // Return an empty div to avoid further errors
+    }
+
     const container = document.createElement("div");
     container.className = "container";
     const imageName = pair.name
@@ -229,6 +255,9 @@ window.addEventListener("load", () => {
     console.error("Error during initialization:", error);
     loadingElement.textContent =
       "Error loading images. Please check the console for details.";
+    loadingElement.style.display = "block";
+    buttonContainer.style.display = "none";
+    slidersContainer.style.display = "none";
   }
 
   init();
