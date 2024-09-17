@@ -10,7 +10,7 @@ window.addEventListener("load", () => {
 
   async function init() {
     try {
-      await scanImageDirectory();
+      await loadImageList();
       await preloadImages();
       createButtons();
       updateSlider(currentPairIndex);
@@ -20,7 +20,7 @@ window.addEventListener("load", () => {
     }
   }
 
-  async function scanImageDirectory() {
+  async function loadImageList() {
     try {
       const response = await fetch("imgSlider/image_list.json");
       if (!response.ok) {
@@ -28,7 +28,7 @@ window.addEventListener("load", () => {
       }
       imagePairs = await response.json();
     } catch (error) {
-      console.error("Error fetching image list:", error);
+      console.error("Error loading image list:", error);
       throw error;
     }
   }
