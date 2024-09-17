@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("load", () => {
   const slidersContainer = document.getElementById("sliders-container");
   const loadingElement = document.getElementById("loading");
   const buttonContainer = document.createElement("div");
@@ -224,5 +224,5 @@ document.addEventListener("DOMContentLoaded", () => {
       "Error loading images. Please check the console for details.";
   }
 
-  window.addEventListener("load", init);
+  init();
 });
