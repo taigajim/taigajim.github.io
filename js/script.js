@@ -6,7 +6,6 @@ window.addEventListener("load", () => {
   document.body.insertBefore(buttonContainer, slidersContainer);
 
   let imagePairs = [];
-  let currentPairIndex = 0;
 
   async function init() {
     try {
@@ -39,89 +38,127 @@ window.addEventListener("load", () => {
   }
 
   async function preloadImages() {
-    await Promise.all(
-      imagePairs.flatMap((pair) => [
-        loadImage(pair.before),
-        loadImage(pair.after),
-      ])
-    );
+    try {
+      await Promise.all(
+        imagePairs.flatMap((pair) => [
+          loadImage(pair.before),
+          loadImage(pair.after),
+        ])
+      );
+      console.log("All images preloaded successfully");
+    } catch (error) {
+      console.error("Error preloading images:", error);
+      throw error;
+    }
+  }
+
+  async function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        console.log(`Image loaded successfully: ${src}`);
+        resolve(img);
+      };
+      img.onerror = () => {
+        console.error(`Failed to load image: ${src}`);
+        reject(new Error(`Failed to load image: ${src}`));
+      };
+      img.src = src;
+    });
   }
 
   function createSliders() {
-    slidersContainer.innerHTML = ""; // Clear existing sliders
-    imagePairs.forEach((pair) => {
-      const slider = createSlider(pair);
-      slidersContainer.appendChild(slider);
-    });
-    resizeAllSliders();
+    slidersContainer.innerHTML = imagePairs.map(createSliderHTML).join("");
+    setupAllSliders();
   }
 
-  function createSlider(pair) {
-    if (!pair || !pair.name || !pair.before || !pair.after) {
+  function createSliderHTML(pair) {
+    if (!pair?.name || !pair.before || !pair.after) {
       console.error("Invalid pair object", pair);
-      handleError(new Error("Invalid pair object"));
-      return document.createElement("div"); // Return an empty div to avoid further errors
+      return "";
     }
 
-    const container = document.createElement("div");
-    container.className = "container";
     const imageName = pair.name
       .split("/")
       .pop()
       .replace(/\.(jpg|jpeg|png|gif)$/i, "");
-    container.innerHTML = `
-      <div class="slider">
-        <div class="slider-label">${imageName}</div>
-        <img src="${pair.before}" class="slider-image slider-image-before" alt="Before image">
-        <img src="${pair.after}" class="slider-image slider-image-after" alt="After image">
-        <div class="slider-line"></div>
-        <div class="slider-button">
-          <span class="left-arrow"></span>
-          <span class="right-arrow"></span>
+    return `
+      <div class="container">
+        <div class="slider" data-before="${pair.before}" data-after="${pair.after}">
+          <div class="slider-label">${imageName}</div>
+          <img src="${pair.before}" class="slider-image slider-image-before" alt="Before image">
+          <img src="${pair.after}" class="slider-image slider-image-after" alt="After image">
+          <div class="slider-line"></div>
+          <div class="slider-button">
+            <span class="left-arrow"></span>
+            <span class="right-arrow"></span>
+          </div>
         </div>
       </div>
     `;
-
-    const slider = container.querySelector(".slider");
-    const sliderBefore = container.querySelector(".slider-image-before");
-    const sliderAfter = container.querySelector(".slider-image-after");
-    const sliderLine = container.querySelector(".slider-line");
-    const sliderButton = container.querySelector(".slider-button");
-
-    setupSliderEvents(
-      slider,
-      sliderBefore,
-      sliderAfter,
-      sliderLine,
-      sliderButton
-    );
-    return container;
   }
 
-  function setupSliderEvents(
-    slider,
-    sliderBefore,
-    sliderAfter,
-    sliderLine,
-    sliderButton
-  ) {
-    let isResizing = false;
-    let animationFrameId = null;
+  function setupAllSliders() {
+    document.querySelectorAll(".slider").forEach((slider) => {
+      const sliderInstance = new Slider(slider);
+      slider.__sliderInstance__ = sliderInstance; // Store instance for later access
+    });
+  }
 
-    const updateClipPath = (x) => {
-      const imageRect = sliderBefore.getBoundingClientRect();
-      const percentage = ((x - imageRect.left) / imageRect.width) * 100;
-      const clampedPercentage = Math.max(0, Math.min(100, percentage));
-      sliderAfter.style.clipPath = `inset(0 ${100 - clampedPercentage}% 0 0)`;
-      sliderLine.style.left = `${clampedPercentage}%`;
-      sliderButton.style.left = `${clampedPercentage}%`;
-    };
+  class Slider {
+    constructor(sliderElement) {
+      this.slider = sliderElement;
+      this.sliderBefore = this.slider.querySelector(".slider-image-before");
+      this.sliderAfter = this.slider.querySelector(".slider-image-after");
+      this.sliderLine = this.slider.querySelector(".slider-line");
+      this.sliderButton = this.slider.querySelector(".slider-button");
+      this.isResizing = false;
+      this.animationFrameId = null;
+      this.touchStartX = 0;
+      this.touchStartY = 0;
+      this.touchStartTime = 0;
+      this.percentage = 50; // Initialize slider position to 50%
 
-    const setSliderDimensions = () => {
-      const containerRect = slider.parentElement.getBoundingClientRect();
-      const naturalWidth = sliderBefore.naturalWidth;
-      const naturalHeight = sliderBefore.naturalHeight;
-      const aspectRatio = naturalWidth / naturalHeight;
+      this.init();
+    }
+
+    async init() {
+      try {
+        await this.preloadImages();
+        this.setSliderDimensions();
+        this.attachEventListeners();
+      } catch (error) {
+        console.error("Error initializing slider:", error);
+        this.displayError();
+      }
+    }
+
+    async preloadImages() {
+      await Promise.all([
+        this.loadImage(this.sliderBefore.src),
+        this.loadImage(this.sliderAfter.src),
+      ]);
+    }
+
+    loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          console.log(`Image loaded successfully: ${src}`);
+          resolve(img);
+        };
+        img.onerror = () => {
+          console.error(`Failed to load image: ${src}`);
+          reject(new Error(`Failed to load image: ${src}`));
+        };
+        img.src = src;
+      });
+    }
+
+    setSliderDimensions() {
+      const containerRect = this.slider.parentElement.getBoundingClientRect();
+      const aspectRatio =
+        this.sliderBefore.naturalWidth / this.sliderBefore.naturalHeight;
 
       let newWidth, newHeight;
 
@@ -143,16 +180,30 @@ window.addEventListener("load", () => {
         }
       }
 
-      slider.style.width = `${newWidth}px`;
-      slider.style.height = `${newHeight}px`;
+      this.slider.style.width = `${newWidth}px`;
+      this.slider.style.height = `${newHeight}px`;
 
-      // Update clip path after resizing
-      updateClipPath(slider.getBoundingClientRect().left + newWidth / 2);
-    };
+      // Update clip path based on current percentage
+      const newX =
+        this.slider.getBoundingClientRect().left +
+        newWidth * (this.percentage / 100);
+      this.updateClipPath(newX);
+    }
 
-    const updateCursor = (e) => {
-      const sliderRect = slider.getBoundingClientRect();
-      const buttonRect = sliderButton.getBoundingClientRect();
+    updateClipPath(x) {
+      const imageRect = this.sliderBefore.getBoundingClientRect();
+      const percentage = ((x - imageRect.left) / imageRect.width) * 100;
+      this.percentage = Math.max(0, Math.min(100, percentage)); // Update percentage
+      this.sliderAfter.style.clipPath = `inset(0 ${
+        100 - this.percentage
+      }% 0 0)`;
+      this.sliderLine.style.left = `${this.percentage}%`;
+      this.sliderButton.style.left = `${this.percentage}%`;
+    }
+
+    updateCursor(e) {
+      const sliderRect = this.slider.getBoundingClientRect();
+      const buttonRect = this.sliderButton.getBoundingClientRect();
       const x = e.clientX || (e.touches && e.touches[0].clientX);
       const y = e.clientY || (e.touches && e.touches[0].clientY);
 
@@ -167,167 +218,132 @@ window.addEventListener("load", () => {
         y >= sliderRect.top &&
         y <= sliderRect.bottom
       ) {
-        slider.style.cursor = "col-resize";
+        this.slider.style.cursor = "col-resize";
       } else {
-        slider.style.cursor = "default";
+        this.slider.style.cursor = "default";
       }
-    };
+    }
 
-    const handleStart = (e) => {
+    handleStart(e) {
       if (e.touches && e.touches.length > 1) return; // Ignore multi-touch
-      updateCursor(e);
-      if (slider.style.cursor === "col-resize") {
+      this.updateCursor(e);
+      if (this.slider.style.cursor === "col-resize") {
         e.preventDefault();
-        isResizing = true;
-        updateClipPath(e.clientX || e.touches[0].clientX);
+        this.isResizing = true;
+        this.updateClipPath(e.clientX || e.touches[0].clientX);
       }
-    };
+    }
 
-    const handleMove = (e) => {
+    handleMove(e) {
       if (e.touches && e.touches.length > 1) return; // Ignore multi-touch
-      updateCursor(e);
-      if (!isResizing) return;
+      this.updateCursor(e);
+      if (!this.isResizing) return;
       e.preventDefault();
-      updateClipPath(e.clientX || e.touches[0].clientX);
-    };
+      this.updateClipPath(e.clientX || e.touches[0].clientX);
+    }
 
-    const handleEnd = (e) => {
-      if (isResizing) e.preventDefault();
-      isResizing = false;
-    };
+    handleEnd(e) {
+      if (this.isResizing) e.preventDefault();
+      this.isResizing = false;
+    }
 
-    slider.addEventListener("mousedown", handleStart);
-    slider.addEventListener("touchstart", handleStart, { passive: false });
-    slider.addEventListener("mousemove", handleMove);
-    slider.addEventListener("touchmove", handleMove, { passive: false });
-    document.addEventListener("mouseup", handleEnd);
-    document.addEventListener("touchend", handleEnd);
-    slider.addEventListener("mouseleave", () => {
-      slider.style.cursor = "default";
-    });
-
-    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-
-    const animateSlider = (startX, endX, startTime, duration) => {
-      const currentTime = Date.now() - startTime;
-      const progress = Math.min(currentTime / duration, 1);
-      const easedProgress = easeOutCubic(progress);
-      const currentX = startX + (endX - startX) * easedProgress;
-
-      updateClipPath(currentX);
-
-      if (progress < 1) {
-        animationFrameId = requestAnimationFrame(() =>
-          animateSlider(startX, endX, startTime, duration)
-        );
-      } else {
-        animationFrameId = null;
-      }
-    };
-
-    let touchStartX, touchStartY, touchStartTime;
-
-    const handleTouchStart = (e) => {
+    handleTouchStart(e) {
       if (e.touches.length > 1) return;
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      touchStartTime = Date.now();
-    };
+      this.touchStartX = e.touches[0].clientX;
+      this.touchStartY = e.touches[0].clientY;
+      this.touchStartTime = Date.now();
+    }
 
-    const handleTouchEnd = (e) => {
-      if (isResizing) return;
+    handleTouchEnd(e) {
+      if (this.isResizing) return;
       const touchEndX = e.changedTouches[0].clientX;
       const touchEndY = e.changedTouches[0].clientY;
       const touchEndTime = Date.now();
 
-      const distanceX = Math.abs(touchEndX - touchStartX);
-      const distanceY = Math.abs(touchEndY - touchStartY);
-      const duration = touchEndTime - touchStartTime;
+      const distanceX = Math.abs(touchEndX - this.touchStartX);
+      const distanceY = Math.abs(touchEndY - this.touchStartY);
+      const duration = touchEndTime - this.touchStartTime;
 
       if (distanceX < 10 && distanceY < 10 && duration < 200) {
-        handleClick(e.changedTouches[0]);
+        this.handleClick(e.changedTouches[0]);
       }
-    };
+    }
 
-    slider.addEventListener("touchstart", handleTouchStart, { passive: true });
-    slider.addEventListener("touchend", handleTouchEnd, { passive: true });
-    // Remove the click event listener
-    // slider.removeEventListener("click", handleClick);
-
-    const handleClick = (e) => {
-      if (isResizing) return;
-      const sliderRect = slider.getBoundingClientRect();
-      const clickX = e.clientX || e.touches[0].clientX;
+    handleClick(e) {
+      if (this.isResizing) return;
+      const sliderRect = this.slider.getBoundingClientRect();
+      const clickX = e.clientX || (e.touches && e.touches[0].clientX);
       const startX =
-        (parseFloat(sliderButton.style.left) / 100) * sliderRect.width +
+        (parseFloat(this.sliderButton.style.left) / 100) * sliderRect.width +
         sliderRect.left;
       const endX = clickX;
 
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
+      if (this.animationFrameId) {
+        cancelAnimationFrame(this.animationFrameId);
       }
 
-      animateSlider(startX, endX, Date.now(), 300); // 300ms duration for the animation
-    };
+      this.animateSlider(startX, endX, Date.now(), 300); // 300ms duration for the animation
+    }
 
-    slider.addEventListener("click", handleClick);
+    easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
 
-    Promise.all([
-      new Promise((resolve) => (sliderBefore.onload = resolve)),
-      new Promise((resolve) => (sliderAfter.onload = resolve)),
-    ]).then(() => {
-      setSliderDimensions();
-      updateClipPath(
-        slider.getBoundingClientRect().left +
-          slider.getBoundingClientRect().width / 2
+    animateSlider(startX, endX, startTime, duration) {
+      const currentTime = Date.now() - startTime;
+      const progress = Math.min(currentTime / duration, 1);
+      const easedProgress = this.easeOutCubic(progress);
+      const currentX = startX + (endX - startX) * easedProgress;
+
+      this.updateClipPath(currentX);
+
+      if (progress < 1) {
+        this.animationFrameId = requestAnimationFrame(() =>
+          this.animateSlider(startX, endX, startTime, duration)
+        );
+      } else {
+        this.animationFrameId = null;
+      }
+    }
+
+    attachEventListeners() {
+      // Mouse events
+      this.slider.addEventListener("mousedown", this.handleStart.bind(this));
+      this.slider.addEventListener("mousemove", this.handleMove.bind(this));
+      document.addEventListener("mouseup", this.handleEnd.bind(this));
+
+      // Touch events
+      this.slider.addEventListener("touchstart", this.handleStart.bind(this), {
+        passive: false,
+      });
+      this.slider.addEventListener("touchmove", this.handleMove.bind(this), {
+        passive: false,
+      });
+      document.addEventListener("touchend", this.handleEnd.bind(this));
+
+      // Tap detection for mobile
+      this.slider.addEventListener(
+        "touchstart",
+        this.handleTouchStart.bind(this),
+        { passive: true }
       );
-    });
+      this.slider.addEventListener("touchend", this.handleTouchEnd.bind(this), {
+        passive: true,
+      });
 
-    window.addEventListener("resize", setSliderDimensions);
-    window.addEventListener("orientationchange", setSliderDimensions);
+      // Click event
+      this.slider.addEventListener("click", this.handleClick.bind(this));
 
-    return () => {
-      window.removeEventListener("resize", setSliderDimensions);
-      window.removeEventListener("orientationchange", setSliderDimensions);
-    };
-  }
+      // Mouse leave
+      this.slider.addEventListener("mouseleave", () => {
+        this.slider.style.cursor = "default";
+      });
+    }
 
-  function resizeAllSliders() {
-    const sliders = document.querySelectorAll(".slider");
-    sliders.forEach((slider) => {
-      const sliderBefore = slider.querySelector(".slider-image-before");
-      const sliderAfter = slider.querySelector(".slider-image-after");
-      const sliderLine = slider.querySelector(".slider-line");
-      const sliderButton = slider.querySelector(".slider-button");
-
-      setupSliderEvents(
-        slider,
-        sliderBefore,
-        sliderAfter,
-        sliderLine,
-        sliderButton
-      );
-    });
-  }
-
-  let resizeTimeout;
-  function handleResize() {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      resizeAllSliders(); // Resize instead of recreate
-    }, 250); // Debounce for 250ms
-  }
-
-  window.addEventListener("resize", handleResize);
-  window.addEventListener("orientationchange", handleResize);
-
-  async function loadImage(src) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-      img.src = src;
-    });
+    displayError() {
+      this.slider.innerHTML = "<p>Error loading images.</p>";
+      this.slider.style.display = "none";
+    }
   }
 
   function showContent() {
@@ -338,11 +354,31 @@ window.addEventListener("load", () => {
   function handleError(error) {
     console.error("Error during initialization:", error);
     loadingElement.textContent =
-      "Error loading images. Please check the console for details.";
+      "Error loading images. Please check your internet connection or contact support.";
     loadingElement.style.display = "block";
     buttonContainer.style.display = "none";
     slidersContainer.style.display = "none";
   }
+
+  function resizeAllSliders() {
+    document.querySelectorAll(".slider").forEach((slider) => {
+      const sliderInstance = slider.__sliderInstance__;
+      if (sliderInstance) {
+        sliderInstance.setSliderDimensions();
+      }
+    });
+  }
+
+  let resizeTimeout;
+  function handleResize() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      window.location.reload(); // Refresh the page after resize
+    }, 250); // Debounce for 250ms
+  }
+
+  window.addEventListener("resize", handleResize);
+  window.addEventListener("orientationchange", handleResize);
 
   init();
 });
