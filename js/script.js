@@ -12,8 +12,7 @@ window.addEventListener("load", () => {
     try {
       await loadImageList();
       await preloadImages();
-      createButtons();
-      updateSlider(currentPairIndex);
+      createSliders();
       showContent();
     } catch (error) {
       handleError(error);
@@ -48,46 +47,11 @@ window.addEventListener("load", () => {
     );
   }
 
-  function createButtons() {
+  function createSliders() {
     imagePairs.forEach((pair, index) => {
-      const button = document.createElement("button");
-      button.textContent = pair.name.split("/").pop();
-      button.addEventListener("click", () => updateSlider(index));
-      buttonContainer.appendChild(button);
+      const slider = createSlider(pair);
+      slidersContainer.appendChild(slider);
     });
-  }
-
-  function updateSlider(index) {
-    if (!imagePairs || imagePairs.length === 0) {
-      console.error("No image pairs available");
-      handleError(new Error("No image pairs available"));
-      return;
-    }
-
-    currentPairIndex = Math.max(0, Math.min(index, imagePairs.length - 1));
-    slidersContainer.innerHTML = "";
-    const pair = imagePairs[currentPairIndex];
-
-    if (!pair) {
-      console.error(`No pair found at index ${currentPairIndex}`);
-      handleError(new Error(`No pair found at index ${currentPairIndex}`));
-      return;
-    }
-
-    const slider = createSlider(pair);
-    slidersContainer.appendChild(slider);
-
-    // Store the cleanup function
-    if (window.currentSliderCleanup) {
-      window.currentSliderCleanup();
-    }
-    window.currentSliderCleanup = setupSliderEvents(
-      slider.querySelector(".slider"),
-      slider.querySelector(".slider-image-before"),
-      slider.querySelector(".slider-image-after"),
-      slider.querySelector(".slider-line"),
-      slider.querySelector(".slider-button")
-    );
   }
 
   function createSlider(pair) {
@@ -110,8 +74,8 @@ window.addEventListener("load", () => {
         <img src="${pair.after}" class="slider-image slider-image-after" alt="After image">
         <div class="slider-line"></div>
         <div class="slider-button">
-          <span class="left-arrow">&lt;&lt;</span>
-          <span class="right-arrow">&gt;&gt;</span>
+          <span class="left-arrow"></span>
+          <span class="right-arrow"></span>
         </div>
       </div>
     `;
@@ -190,32 +154,12 @@ window.addEventListener("load", () => {
       isResizing = false;
     };
 
-    // Modified handleWheel function to prevent resetting
-    const handleWheel = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const delta = e.deltaY;
-      const step = 0.99; // Reduced step size for slower movement
-      const currentLeft = parseFloat(sliderButton.style.left);
-      // If currentLeft is NaN (initial state), set it to 50
-      const startLeft = isNaN(currentLeft) ? 50 : currentLeft;
-      const newLeft = Math.max(
-        0,
-        Math.min(100, startLeft - (delta * step) / 100)
-      );
-      updateClipPath(
-        slider.getBoundingClientRect().left +
-          (slider.offsetWidth * newLeft) / 100
-      );
-    };
-
     slider.addEventListener("mousedown", handleStart);
     slider.addEventListener("touchstart", handleStart);
     document.addEventListener("mousemove", handleMove);
     document.addEventListener("touchmove", handleMove, { passive: false });
     document.addEventListener("mouseup", handleEnd);
     document.addEventListener("touchend", handleEnd);
-    slider.addEventListener("wheel", handleWheel, { passive: false });
 
     Promise.all([
       new Promise((resolve) => (sliderBefore.onload = resolve)),
@@ -232,7 +176,6 @@ window.addEventListener("load", () => {
 
     return () => {
       window.removeEventListener("resize", setSliderDimensions);
-      slider.removeEventListener("wheel", handleWheel);
     };
   }
 
@@ -247,8 +190,7 @@ window.addEventListener("load", () => {
 
   function showContent() {
     loadingElement.style.display = "none";
-    buttonContainer.style.display = "flex";
-    slidersContainer.style.display = "block";
+    slidersContainer.style.display = "flex";
   }
 
   function handleError(error) {

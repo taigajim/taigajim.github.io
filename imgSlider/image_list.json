@@ -13,5 +13,10 @@
     "name": "sompasaari",
     "before": "imgSlider/sompasaari_a.jpg",
     "after": "imgSlider/sompasaari_b.jpg"
+  },
+  {
+    "name": "sompasaari",
+    "before": "imgSlider/sompasaari_a.jpg",
+    "after": "imgSlider/sompasaari_b.jpg"
   }
 ]
