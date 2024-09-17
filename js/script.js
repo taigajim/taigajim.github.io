@@ -48,10 +48,12 @@ window.addEventListener("load", () => {
   }
 
   function createSliders() {
-    imagePairs.forEach((pair, index) => {
+    slidersContainer.innerHTML = ""; // Clear existing sliders
+    imagePairs.forEach((pair) => {
       const slider = createSlider(pair);
       slidersContainer.appendChild(slider);
     });
+    resizeAllSliders();
   }
 
   function createSlider(pair) {
@@ -122,12 +124,22 @@ window.addEventListener("load", () => {
 
       let newWidth, newHeight;
 
-      if (containerRect.width / containerRect.height > aspectRatio) {
-        newHeight = Math.min(containerRect.height, naturalHeight);
+      if (window.innerWidth > window.innerHeight) {
+        // Landscape
+        newHeight = containerRect.height;
         newWidth = newHeight * aspectRatio;
+        if (newWidth > containerRect.width) {
+          newWidth = containerRect.width;
+          newHeight = newWidth / aspectRatio;
+        }
       } else {
-        newWidth = Math.min(containerRect.width, naturalWidth);
+        // Portrait
+        newWidth = containerRect.width;
         newHeight = newWidth / aspectRatio;
+        if (newHeight > containerRect.height) {
+          newHeight = containerRect.height;
+          newWidth = newHeight * aspectRatio;
+        }
       }
 
       slider.style.width = `${newWidth}px`;
@@ -173,11 +185,42 @@ window.addEventListener("load", () => {
     });
 
     window.addEventListener("resize", setSliderDimensions);
+    window.addEventListener("orientationchange", setSliderDimensions);
 
     return () => {
       window.removeEventListener("resize", setSliderDimensions);
+      window.removeEventListener("orientationchange", setSliderDimensions);
     };
   }
+
+  function resizeAllSliders() {
+    const sliders = document.querySelectorAll(".slider");
+    sliders.forEach((slider) => {
+      const sliderBefore = slider.querySelector(".slider-image-before");
+      const sliderAfter = slider.querySelector(".slider-image-after");
+      const sliderLine = slider.querySelector(".slider-line");
+      const sliderButton = slider.querySelector(".slider-button");
+
+      setupSliderEvents(
+        slider,
+        sliderBefore,
+        sliderAfter,
+        sliderLine,
+        sliderButton
+      );
+    });
+  }
+
+  let resizeTimeout;
+  function handleResize() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      createSliders(); // Re-create all sliders
+    }, 250); // Debounce for 250ms
+  }
+
+  window.addEventListener("resize", handleResize);
+  window.addEventListener("orientationchange", handleResize);
 
   async function loadImage(src) {
     return new Promise((resolve, reject) => {
