@@ -164,20 +164,12 @@ window.addEventListener("load", () => {
 
       if (window.innerWidth > window.innerHeight) {
         // Landscape
-        newHeight = containerRect.height;
-        newWidth = newHeight * aspectRatio;
-        if (newWidth > containerRect.width) {
-          newWidth = containerRect.width;
-          newHeight = newWidth / aspectRatio;
-        }
-      } else {
-        // Portrait
         newWidth = containerRect.width;
         newHeight = newWidth / aspectRatio;
-        if (newHeight > containerRect.height) {
-          newHeight = containerRect.height;
-          newWidth = newHeight * aspectRatio;
-        }
+      } else {
+        // Portrait
+        newHeight = containerRect.height;
+        newWidth = newHeight * aspectRatio;
       }
 
       this.slider.style.width = `${newWidth}px`;
@@ -373,7 +365,7 @@ window.addEventListener("load", () => {
   function handleResize() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-      window.location.reload(); // Refresh the page after resize
+      resizeAllSliders(); // Refresh slider dimensions instead of reloading the page
     }, 250); // Debounce for 250ms
   }
 
