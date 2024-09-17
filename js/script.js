@@ -149,13 +149,40 @@ window.addEventListener("load", () => {
       updateClipPath(slider.getBoundingClientRect().left + newWidth / 2);
     };
 
+    const updateCursor = (e) => {
+      const sliderRect = slider.getBoundingClientRect();
+      const buttonRect = sliderButton.getBoundingClientRect();
+      const x = e.clientX || (e.touches && e.touches[0].clientX);
+      const y = e.clientY || (e.touches && e.touches[0].clientY);
+
+      // Calculate the hit area (10% of slider width on each side of the button)
+      const hitAreaWidth = sliderRect.width * 0.1;
+      const hitAreaLeft = buttonRect.left - hitAreaWidth;
+      const hitAreaRight = buttonRect.right + hitAreaWidth;
+
+      if (
+        x >= hitAreaLeft &&
+        x <= hitAreaRight &&
+        y >= sliderRect.top &&
+        y <= sliderRect.bottom
+      ) {
+        slider.style.cursor = "col-resize";
+      } else {
+        slider.style.cursor = "default";
+      }
+    };
+
     const handleStart = (e) => {
-      e.preventDefault();
-      isResizing = true;
-      updateClipPath(e.clientX || e.touches[0].clientX);
+      updateCursor(e);
+      if (slider.style.cursor === "col-resize") {
+        e.preventDefault();
+        isResizing = true;
+        updateClipPath(e.clientX || e.touches[0].clientX);
+      }
     };
 
     const handleMove = (e) => {
+      updateCursor(e);
       if (!isResizing) return;
       e.preventDefault();
       updateClipPath(e.clientX || e.touches[0].clientX);
@@ -168,10 +195,13 @@ window.addEventListener("load", () => {
 
     slider.addEventListener("mousedown", handleStart);
     slider.addEventListener("touchstart", handleStart);
-    document.addEventListener("mousemove", handleMove);
-    document.addEventListener("touchmove", handleMove, { passive: false });
+    slider.addEventListener("mousemove", handleMove);
+    slider.addEventListener("touchmove", handleMove, { passive: false });
     document.addEventListener("mouseup", handleEnd);
     document.addEventListener("touchend", handleEnd);
+    slider.addEventListener("mouseleave", () => {
+      slider.style.cursor = "default";
+    });
 
     Promise.all([
       new Promise((resolve) => (sliderBefore.onload = resolve)),

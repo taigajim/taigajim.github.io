@@ -36,7 +36,7 @@ body {
 .slider {
   position: relative;
   display: inline-block;
-  cursor: col-resize;
+  /* Remove the cursor: col-resize; line */
   border-radius: 8px;
   overflow: hidden;
   width: 100%;
@@ -89,6 +89,19 @@ body {
   font-weight: bold;
   color: #333;
   overflow: hidden;
+}
+
+.slider-button::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200%; /* Increase as needed to match the hit area */
+  height: 200%; /* Increase as needed to match the hit area */
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  z-index: -1;
 }
 
 .slider-label {
