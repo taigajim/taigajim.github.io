@@ -1,6 +1,7 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box; /* Added for consistent sizing */
 }
 
 body {
@@ -11,7 +12,6 @@ body {
   background-color: #363636;
   font-family: Arial, sans-serif;
   user-select: none;
-  margin: 0;
 }
 
 #sliders-container {
@@ -22,96 +22,83 @@ body {
   padding: 20px 0;
   width: 100%;
   flex-grow: 1;
+  visibility: hidden;
 }
 
-.container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-}
-
-.slider {
+.image-slider {
   position: relative;
-  display: inline-block;
-  border-radius: 8px;
+  width: 100%;
+  max-width: 1000px;
   overflow: hidden;
+}
+
+.image-slider .before,
+.image-slider .after {
   width: 100%;
   height: auto;
-}
-
-.slider-image {
   display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  pointer-events: none;
 }
 
-.slider-image-after {
+.image-slider .after {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
   height: 100%;
+  width: 100%;
+  pointer-events: none; /* Prevent 'after' image from capturing mouse events */
+  will-change: clip-path; /* Hint the browser for smoother animations */
+  transform: translateX(0%);
+  transition: transform 0.3s ease-out;
+  clip-path: inset(0 50% 0 0);
+  -webkit-clip-path: inset(0 50% 0 0); /* For better browser support */
 }
 
 .slider-line {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 2px;
-  background-color: white;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 15;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  width: 1px;
+  background-color: rgba(255, 255, 255, 0.7);
+  z-index: 10;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+  cursor: col-resize;
 }
 
-.slider-button {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: white;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-  z-index: 20;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-  overflow: hidden;
-}
-
-.slider-button::before {
+/* Expanded hit area for slider-line */
+.slider-line::before {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 200%; /* Increase as needed to match the hit area */
-  height: 200%; /* Increase as needed to match the hit area */
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: -10px; /* Extend 10px to the left */
+  right: -10px; /* Extend 10px to the right */
+  background: transparent; /* Invisible hit area */
+  cursor: col-resize;
 }
 
-.slider-label {
+/* Slider Marks */
+.slider-mark {
+  width: 1px;
+  height: 20px;
+  background-color: rgba(255, 255, 255, 0.7);
   position: absolute;
-  top: 10px;
-  left: 10px;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  z-index: 10;
-  font-size: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 11; /* Ensure marks are above the slider line */
+  transition: background-color 0.3s;
+}
+
+.slider-mark.left {
+  transform: translate(-6px, -50%); /* Shift 10px to the left for symmetry */
+}
+
+.slider-mark.right {
+  transform: translate(6px, -50%); /* Shift 10px to the right for symmetry */
+}
+
+/* Remove the ::after pseudo-element */
+.slider-mark::after {
+  display: none;
 }
 
 #loading {
@@ -125,4 +112,12 @@ body {
   color: white;
   padding: 20px;
   border-radius: 10px;
+}
+
+.slider {
+  outline: none;
+}
+
+.slider:focus .slider-line {
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
 }
