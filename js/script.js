@@ -46,27 +46,25 @@ window.addEventListener("load", () => {
     }
 
     setupElements() {
-      // Create slider line
+      // Create slider line with marks
       this.sliderLine = document.createElement("div");
       this.sliderLine.classList.add("slider-line");
-      this.slider.appendChild(this.sliderLine);
 
-      // Create left mark
       this.leftMark = document.createElement("span");
       this.leftMark.classList.add("slider-mark", "left");
-      this.slider.appendChild(this.leftMark);
 
-      // Create right mark
       this.rightMark = document.createElement("span");
       this.rightMark.classList.add("slider-mark", "right");
-      this.slider.appendChild(this.rightMark);
+
+      this.sliderLine.appendChild(this.leftMark);
+      this.sliderLine.appendChild(this.rightMark);
+
+      this.slider.appendChild(this.sliderLine);
     }
 
     updateSlider() {
       this.afterImage.style.clipPath = `inset(0 ${100 - this.percentage}% 0 0)`;
       this.sliderLine.style.left = `${this.percentage}%`;
-      this.leftMark.style.left = `${this.percentage}%`;
-      this.rightMark.style.left = `${this.percentage}%`;
     }
 
     attachEvents() {
@@ -75,7 +73,7 @@ window.addEventListener("load", () => {
       this.afterImage.draggable = false;
 
       // Consolidate Drag Initiators: Manage with an array
-      const dragInitiators = [this.sliderLine, this.leftMark, this.rightMark, this.slider];
+      const dragInitiators = [this.sliderLine, this.slider];
       dragInitiators.forEach((element) => {
         element.addEventListener("mousedown", this.startDragBound);
         element.addEventListener("touchstart", this.handleTouchStart.bind(this), { passive: true });
@@ -83,7 +81,7 @@ window.addEventListener("load", () => {
 
       // Event listeners for dragging
       window.addEventListener("mousemove", this.handleMouseMove);
-      window.addEventListener("touchmove", this.handleTouchMove.bind(this), { passive: true });
+      window.addEventListener("touchmove", this.handleTouchMove.bind(this), { passive: false });
 
       // Event listeners for stopping drag
       window.addEventListener("mouseup", this.handleMouseUp);
@@ -242,28 +240,28 @@ window.addEventListener("load", () => {
       this.touchStartX = e.touches[0].clientX;
       this.touchStartY = e.touches[0].clientY;
       this.isScrolling = false;
-      this.isDragging = true;
+      this.isDragging = false; // Start as not dragging
     }
 
     handleTouchMove(e) {
-      if (!this.isDragging) return;
-
       const touchX = e.touches[0].clientX;
       const touchY = e.touches[0].clientY;
       const deltaX = touchX - this.touchStartX;
       const deltaY = touchY - this.touchStartY;
 
-      // Determine if the user is trying to scroll or use the slider
-      if (!this.isScrolling) {
+      // If we haven't determined the gesture yet
+      if (!this.isScrolling && !this.isDragging) {
+        // Check if it's more of a vertical movement (scroll) or horizontal movement (drag)
         if (Math.abs(deltaY) > Math.abs(deltaX)) {
           this.isScrolling = true;
-          this.isDragging = false;
-          return;
+        } else if (Math.abs(deltaX) > 10) {
+          // Add a small threshold for drag
+          this.isDragging = true;
         }
       }
 
-      if (!this.isScrolling) {
-        e.preventDefault(); // Prevent scrolling only if we're using the slider
+      if (this.isDragging) {
+        e.preventDefault(); // Prevent scrolling only if we're dragging the slider
         this.onDrag(e);
       }
     }

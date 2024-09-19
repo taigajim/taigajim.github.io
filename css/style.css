@@ -60,11 +60,12 @@ body {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 1px;
+  width: 1px; /* Increased width to accommodate marks */
   background-color: rgba(255, 255, 255, 0.7);
   z-index: 10;
   box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
   cursor: col-resize;
+  transform: translateX(-50%); /* Center the line on its left edge */
 }
 
 /* Expanded hit area for slider-line */
@@ -73,9 +74,9 @@ body {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -10px; /* Extend 10px to the left */
-  right: -10px; /* Extend 10px to the right */
-  background: transparent; /* Invisible hit area */
+  left: -10px;
+  right: -10px;
+  background: transparent;
   cursor: col-resize;
 }
 
@@ -86,17 +87,17 @@ body {
   background-color: rgba(255, 255, 255, 0.7);
   position: absolute;
   top: 50%;
+  left: 0;
   transform: translateY(-50%);
-  z-index: 11; /* Ensure marks are above the slider line */
-  transition: background-color 0.3s;
+  z-index: 11;
 }
 
 .slider-mark.left {
-  transform: translate(-6px, -50%); /* Shift 10px to the left for symmetry */
+  transform: translate(-6px, -50%);
 }
 
 .slider-mark.right {
-  transform: translate(6px, -50%); /* Shift 10px to the right for symmetry */
+  transform: translate(6px, -50%);
 }
 
 /* Remove the ::after pseudo-element */
