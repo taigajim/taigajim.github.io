@@ -1,6 +1,7 @@
 window.addEventListener("load", () => {
   const slidersContainer = document.getElementById("sliders-container");
-  const loadingElement = document.getElementById("loading");
+  // Remove this line:
+  // const loadingElement = document.getElementById("loading");
 
   class Slider {
     constructor(sliderElement) {
@@ -10,9 +11,9 @@ window.addEventListener("load", () => {
       this.percentage = parseInt(this.slider.dataset.percentage) || 50;
       this.isDragging = false;
       this.animationFrame = null;
+      this.touchStartX = 0;
       this.touchStartY = 0;
-      this.touchMoveY = 0;
-      this.isReady = false;
+      this.isScrolling = false;
 
       // Bind event handlers once and store references for later removal
       this.startDragBound = this.startDrag.bind(this);
@@ -77,16 +78,16 @@ window.addEventListener("load", () => {
       const dragInitiators = [this.sliderLine, this.leftMark, this.rightMark, this.slider];
       dragInitiators.forEach((element) => {
         element.addEventListener("mousedown", this.startDragBound);
-        element.addEventListener("touchstart", this.handleTouchStart.bind(this));
+        element.addEventListener("touchstart", this.handleTouchStart.bind(this), { passive: true });
       });
 
       // Event listeners for dragging
       window.addEventListener("mousemove", this.handleMouseMove);
-      window.addEventListener("touchmove", this.handleTouchMove.bind(this));
+      window.addEventListener("touchmove", this.handleTouchMove.bind(this), { passive: true });
 
       // Event listeners for stopping drag
       window.addEventListener("mouseup", this.handleMouseUp);
-      window.addEventListener("touchend", this.handleTouchEnd);
+      window.addEventListener("touchend", this.handleTouchEnd.bind(this), { passive: true });
 
       // Prevent click on marks from triggering the slider click event
       [this.leftMark, this.rightMark].forEach((mark) => {
@@ -103,8 +104,9 @@ window.addEventListener("load", () => {
 
     checkAllSlidersReady() {
       if (Array.from(document.querySelectorAll(".image-slider")).every((slider) => slider.__slider && slider.__slider.isReady)) {
-        console.log("All sliders ready, hiding loading element");
-        loadingElement.style.display = "none";
+        console.log("All sliders ready");
+        // Remove this line:
+        // loadingElement.style.display = "none";
       }
     }
 
@@ -237,23 +239,38 @@ window.addEventListener("load", () => {
     }
 
     handleTouchStart(e) {
+      this.touchStartX = e.touches[0].clientX;
       this.touchStartY = e.touches[0].clientY;
-      this.startDrag(e);
+      this.isScrolling = false;
+      this.isDragging = true;
     }
 
     handleTouchMove(e) {
       if (!this.isDragging) return;
 
-      this.touchMoveY = e.touches[0].clientY;
-      const touchDeltaY = Math.abs(this.touchMoveY - this.touchStartY);
+      const touchX = e.touches[0].clientX;
+      const touchY = e.touches[0].clientY;
+      const deltaX = touchX - this.touchStartX;
+      const deltaY = touchY - this.touchStartY;
 
-      if (touchDeltaY > 10) {
-        // If vertical movement is significant, stop dragging and allow scrolling
-        this.stopDrag();
-      } else {
-        // Otherwise, handle the drag
+      // Determine if the user is trying to scroll or use the slider
+      if (!this.isScrolling) {
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          this.isScrolling = true;
+          this.isDragging = false;
+          return;
+        }
+      }
+
+      if (!this.isScrolling) {
+        e.preventDefault(); // Prevent scrolling only if we're using the slider
         this.onDrag(e);
       }
+    }
+
+    handleTouchEnd(e) {
+      this.isDragging = false;
+      this.isScrolling = false;
     }
   }
 
