@@ -22,7 +22,7 @@ body {
   padding: 20px 0;
   width: 100%;
   flex-grow: 1;
-  visibility: hidden;
+  visibility: hidden; /* Initially hidden, will be shown by JavaScript */
 }
 
 .image-slider {
@@ -30,27 +30,30 @@ body {
   width: 100%;
   max-width: 1000px;
   overflow: hidden;
+  border-radius: 10px;
+  aspect-ratio: 16 / 9; /* Maintain a consistent aspect ratio */
+  visibility: visible; /* Always visible */
 }
 
 .image-slider .before,
 .image-slider .after {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.image-slider .after {
   position: absolute;
   top: 0;
   left: 0;
-  height: 100%;
   width: 100%;
-  pointer-events: none; /* Prevent 'after' image from capturing mouse events */
-  will-change: clip-path; /* Hint the browser for smoother animations */
-  transform: translateX(0%);
-  transition: transform 0.3s ease-out;
+  height: 100%;
+  object-fit: cover; /* Ensure images cover the entire container */
+}
+
+.image-slider .after {
   clip-path: inset(0 50% 0 0);
-  -webkit-clip-path: inset(0 50% 0 0); /* For better browser support */
+  -webkit-clip-path: inset(0 50% 0 0);
+}
+
+.image-slider img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .slider-line {
@@ -112,12 +115,5 @@ body {
   color: white;
   padding: 20px;
   border-radius: 10px;
-}
-
-.slider {
-  outline: none;
-}
-
-.slider:focus .slider-line {
-  box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  z-index: 1000; /* Ensure it's above other elements */
 }

@@ -10,6 +10,9 @@ window.addEventListener("load", () => {
       this.percentage = parseInt(this.slider.dataset.percentage) || 50;
       this.isDragging = false;
       this.animationFrame = null;
+      this.touchStartY = 0;
+      this.touchMoveY = 0;
+      this.isReady = false;
 
       // Bind event handlers once and store references for later removal
       this.startDragBound = this.startDrag.bind(this);
@@ -24,16 +27,20 @@ window.addEventListener("load", () => {
 
     init() {
       this.setupElements();
+      this.showContent(); // Show content immediately
       this.waitForImages()
         .then(() => {
+          this.isReady = true;
           this.updateSlider();
           this.attachEvents();
-          this.showContent();
           console.log("Slider initialized successfully");
         })
         .catch((error) => {
           console.error("Error loading images:", error);
           this.displayError();
+        })
+        .finally(() => {
+          this.checkAllSlidersReady();
         });
     }
 
@@ -67,20 +74,15 @@ window.addEventListener("load", () => {
       this.afterImage.draggable = false;
 
       // Consolidate Drag Initiators: Manage with an array
-      const dragInitiators = [
-        this.sliderLine,
-        this.leftMark,
-        this.rightMark,
-        this.slider,
-      ];
+      const dragInitiators = [this.sliderLine, this.leftMark, this.rightMark, this.slider];
       dragInitiators.forEach((element) => {
         element.addEventListener("mousedown", this.startDragBound);
-        element.addEventListener("touchstart", this.startDragBound);
+        element.addEventListener("touchstart", this.handleTouchStart.bind(this));
       });
 
       // Event listeners for dragging
       window.addEventListener("mousemove", this.handleMouseMove);
-      window.addEventListener("touchmove", this.handleTouchMove);
+      window.addEventListener("touchmove", this.handleTouchMove.bind(this));
 
       // Event listeners for stopping drag
       window.addEventListener("mouseup", this.handleMouseUp);
@@ -96,16 +98,13 @@ window.addEventListener("load", () => {
     }
 
     showContent() {
-      console.log("Showing content for a slider");
       this.slider.style.visibility = "visible";
-      if (
-        Array.from(document.querySelectorAll(".image-slider")).every(
-          (slider) => slider.style.visibility === "visible"
-        )
-      ) {
-        console.log("All sliders visible, hiding loading element");
+    }
+
+    checkAllSlidersReady() {
+      if (Array.from(document.querySelectorAll(".image-slider")).every((slider) => slider.__slider && slider.__slider.isReady)) {
+        console.log("All sliders ready, hiding loading element");
         loadingElement.style.display = "none";
-        slidersContainer.style.visibility = "visible";
       }
     }
 
@@ -188,21 +187,15 @@ window.addEventListener("load", () => {
     }
 
     waitForImages() {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         const checkImages = () => {
-          const beforeLoaded =
-            this.beforeImage.complete && this.beforeImage.naturalHeight !== 0;
-          const afterLoaded =
-            this.afterImage.complete && this.afterImage.naturalHeight !== 0;
-
-          console.log(
-            `Before image loaded: ${beforeLoaded}, After image loaded: ${afterLoaded}`
-          );
+          const beforeLoaded = this.beforeImage.complete && this.beforeImage.naturalHeight !== 0;
+          const afterLoaded = this.afterImage.complete && this.afterImage.naturalHeight !== 0;
 
           if (beforeLoaded && afterLoaded) {
             resolve();
           } else {
-            setTimeout(checkImages, 100); // Check again after 100ms
+            requestAnimationFrame(checkImages);
           }
         };
 
@@ -211,8 +204,8 @@ window.addEventListener("load", () => {
     }
 
     displayError() {
-      this.slider.innerHTML = "<p>Error loading images.</p>";
-      this.slider.style.display = "none";
+      console.error("Error loading images for slider");
+      this.slider.innerHTML += "<p style='color: red;'>Error loading images. Please refresh the page.</p>";
     }
 
     // Debounce utility function
@@ -227,15 +220,10 @@ window.addEventListener("load", () => {
     // Prevent Memory Leaks: Add destroy method to remove event listeners
     destroy() {
       // Consolidate Drag Initiators: Remove event listeners
-      const dragInitiators = [
-        this.sliderLine,
-        this.leftMark,
-        this.rightMark,
-        this.slider,
-      ];
+      const dragInitiators = [this.sliderLine, this.leftMark, this.rightMark, this.slider];
       dragInitiators.forEach((element) => {
         element.removeEventListener("mousedown", this.startDragBound);
-        element.removeEventListener("touchstart", this.startDragBound);
+        element.removeEventListener("touchstart", this.handleTouchStart);
       });
 
       // Remove dragging event listeners
@@ -247,15 +235,36 @@ window.addEventListener("load", () => {
       // Remove resize event listener
       window.removeEventListener("resize", this.handleResize);
     }
+
+    handleTouchStart(e) {
+      this.touchStartY = e.touches[0].clientY;
+      this.startDrag(e);
+    }
+
+    handleTouchMove(e) {
+      if (!this.isDragging) return;
+
+      this.touchMoveY = e.touches[0].clientY;
+      const touchDeltaY = Math.abs(this.touchMoveY - this.touchStartY);
+
+      if (touchDeltaY > 10) {
+        // If vertical movement is significant, stop dragging and allow scrolling
+        this.stopDrag();
+      } else {
+        // Otherwise, handle the drag
+        this.onDrag(e);
+      }
+    }
   }
 
   // Initialize Sliders
   function initializeSliders() {
     console.log("Initializing sliders");
+    slidersContainer.style.visibility = "visible";
     const sliders = document.querySelectorAll(".image-slider");
     sliders.forEach((slider, index) => {
       console.log(`Initializing slider ${index + 1}`);
-      new Slider(slider);
+      slider.__slider = new Slider(slider);
     });
   }
 
