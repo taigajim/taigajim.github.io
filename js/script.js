@@ -79,6 +79,11 @@ window.addEventListener("load", () => {
         element.addEventListener("touchstart", this.handleTouchStart.bind(this), { passive: true });
       });
 
+      // Update touch event listeners
+      this.slider.addEventListener("touchstart", this.handleTouchStart.bind(this), { passive: true });
+      this.slider.addEventListener("touchmove", this.handleTouchMove.bind(this), { passive: false });
+      this.slider.addEventListener("touchend", this.handleTouchEnd.bind(this), { passive: true });
+
       // Event listeners for dragging
       window.addEventListener("mousemove", this.handleMouseMove);
       window.addEventListener("touchmove", this.handleTouchMove.bind(this), { passive: false });
@@ -234,28 +239,28 @@ window.addEventListener("load", () => {
 
       // Remove resize event listener
       window.removeEventListener("resize", this.handleResize);
+
+      // Update destroy method to remove new event listeners
+      this.slider.removeEventListener("touchstart", this.handleTouchStart);
+      this.slider.removeEventListener("touchmove", this.handleTouchMove);
+      this.slider.removeEventListener("touchend", this.handleTouchEnd);
     }
 
     handleTouchStart(e) {
       this.touchStartX = e.touches[0].clientX;
       this.touchStartY = e.touches[0].clientY;
-      this.isScrolling = false;
-      this.isDragging = false; // Start as not dragging
+      this.isDragging = false;
     }
 
     handleTouchMove(e) {
-      const touchX = e.touches[0].clientX;
-      const touchY = e.touches[0].clientY;
-      const deltaX = touchX - this.touchStartX;
-      const deltaY = touchY - this.touchStartY;
+      if (!this.isDragging) {
+        const touchX = e.touches[0].clientX;
+        const touchY = e.touches[0].clientY;
+        const deltaX = touchX - this.touchStartX;
+        const deltaY = touchY - this.touchStartY;
 
-      // If we haven't determined the gesture yet
-      if (!this.isScrolling && !this.isDragging) {
-        // Check if it's more of a vertical movement (scroll) or horizontal movement (drag)
-        if (Math.abs(deltaY) > Math.abs(deltaX)) {
-          this.isScrolling = true;
-        } else if (Math.abs(deltaX) > 10) {
-          // Add a small threshold for drag
+        // If horizontal movement is greater than vertical, start dragging
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
           this.isDragging = true;
         }
       }
@@ -268,7 +273,6 @@ window.addEventListener("load", () => {
 
     handleTouchEnd(e) {
       this.isDragging = false;
-      this.isScrolling = false;
     }
   }
 
