@@ -102,8 +102,10 @@ body {
   background: rgba(255, 255, 255, 0.1);
 }
 
+/*
 .image-slider,
 .slider-line,
 .slider-line::before {
   touch-action: pan-y;
 }
+*/
