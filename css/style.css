@@ -101,3 +101,9 @@ body {
 .image-slider.dragging .slider-line::before {
   background: rgba(255, 255, 255, 0.1);
 }
+
+.image-slider,
+.slider-line,
+.slider-line::before {
+  touch-action: pan-y; /* Allow vertical scrolling */
+}
