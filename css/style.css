@@ -66,6 +66,7 @@ body {
   box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
   cursor: col-resize;
   transform: translateX(-50%); /* Center the line on its left edge */
+  transition: background-color 0.2s ease;
 }
 
 /* Expanded hit area for slider-line */
@@ -103,4 +104,10 @@ body {
 /* Remove the ::after pseudo-element */
 .slider-mark::after {
   display: none;
+}
+
+.slider-line:active,
+.image-slider.dragging .slider-line {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
