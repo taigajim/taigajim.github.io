@@ -14,10 +14,6 @@ window.addEventListener("load", () => {
       this.touchStartX = 0;
       this.touchStartY = 0;
       this.isScrolling = false;
-      this.scrollLockTimeout = null;
-      this.sliderMiddleWidth = 40; // Width of the middle area in pixels
-      this.isMiddleTouch = false;
-      this.isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
       // Bind event handlers once and store references for later removal
       this.startDragBound = this.startDrag.bind(this);
@@ -83,12 +79,6 @@ window.addEventListener("load", () => {
         element.addEventListener("touchstart", this.handleTouchStart.bind(this), { passive: true });
       });
 
-      // Update touch event listeners
-      this.slider.addEventListener("touchstart", this.handleTouchStart.bind(this), { passive: false });
-      this.slider.addEventListener("touchmove", this.handleTouchMove.bind(this), { passive: false });
-      this.slider.addEventListener("touchend", this.handleTouchEnd.bind(this));
-      this.slider.addEventListener("touchcancel", this.handleTouchEnd.bind(this));
-
       // Event listeners for dragging
       window.addEventListener("mousemove", this.handleMouseMove);
       window.addEventListener("touchmove", this.handleTouchMove.bind(this), { passive: false });
@@ -96,11 +86,6 @@ window.addEventListener("load", () => {
       // Event listeners for stopping drag
       window.addEventListener("mouseup", this.handleMouseUp);
       window.addEventListener("touchend", this.handleTouchEnd.bind(this), { passive: true });
-
-      // Prevent text selection on touch devices
-      if (this.isTouchDevice) {
-        this.slider.addEventListener("selectstart", (e) => e.preventDefault());
-      }
 
       // Prevent click on marks from triggering the slider click event
       [this.leftMark, this.rightMark].forEach((mark) => {
@@ -141,7 +126,6 @@ window.addEventListener("load", () => {
 
       // Animate smoothly to the new position
       this.animateTo(percentage, 150);
-      this.slider.classList.add("dragging");
     }
 
     onDrag(e) {
@@ -171,7 +155,6 @@ window.addEventListener("load", () => {
 
     stopDrag() {
       this.isDragging = false;
-      this.slider.classList.remove("dragging");
     }
 
     animateTo(targetPercentage, duration = 150) {
@@ -251,52 +234,41 @@ window.addEventListener("load", () => {
 
       // Remove resize event listener
       window.removeEventListener("resize", this.handleResize);
-
-      // Update destroy method to remove new event listeners
-      this.slider.removeEventListener("touchstart", this.handleTouchStart);
-      this.slider.removeEventListener("touchmove", this.handleTouchMove);
-      this.slider.removeEventListener("touchend", this.handleTouchEnd);
     }
 
     handleTouchStart(e) {
-      e.preventDefault(); // Prevent default touch behavior
       this.touchStartX = e.touches[0].clientX;
       this.touchStartY = e.touches[0].clientY;
-      this.isDragging = false;
-
-      // Check if the touch is within the slider's middle area
-      const rect = this.slider.getBoundingClientRect();
-      const middleX = rect.left + rect.width / 2;
-      if (Math.abs(this.touchStartX - middleX) < this.sliderMiddleWidth / 2) {
-        this.isMiddleTouch = true;
-        this.startDrag(e); // Start dragging immediately for touch devices
-      } else {
-        this.isMiddleTouch = false;
-      }
+      this.isScrolling = false;
+      this.isDragging = false; // Start as not dragging
     }
 
     handleTouchMove(e) {
-      if (this.isDragging) {
-        e.preventDefault(); // Prevent scrolling only if we're dragging
-        this.onDrag(e);
-      } else if (this.isMiddleTouch) {
-        const touchX = e.touches[0].clientX;
-        const touchY = e.touches[0].clientY;
-        const deltaX = touchX - this.touchStartX;
-        const deltaY = touchY - this.touchStartY;
+      const touchX = e.touches[0].clientX;
+      const touchY = e.touches[0].clientY;
+      const deltaX = touchX - this.touchStartX;
+      const deltaY = touchY - this.touchStartY;
 
-        // Start dragging if it's a horizontal movement in the middle area
-        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      // If we haven't determined the gesture yet
+      if (!this.isScrolling && !this.isDragging) {
+        // Check if it's more of a vertical movement (scroll) or horizontal movement (drag)
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          this.isScrolling = true;
+        } else if (Math.abs(deltaX) > 10) {
+          // Add a small threshold for drag
           this.isDragging = true;
-          this.onDrag(e);
         }
+      }
+
+      if (this.isDragging) {
+        e.preventDefault(); // Prevent scrolling only if we're dragging the slider
+        this.onDrag(e);
       }
     }
 
     handleTouchEnd(e) {
       this.isDragging = false;
-      this.isMiddleTouch = false;
-      this.stopDrag();
+      this.isScrolling = false;
     }
   }
 
