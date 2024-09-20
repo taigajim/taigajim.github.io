@@ -11,12 +11,6 @@ body {
   padding: 20px;
   background-color: #363636;
   font-family: Arial, sans-serif;
-  user-select: none;
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none; /* Safari */
-  -khtml-user-select: none; /* Konqueror HTML */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
 }
 
 #sliders-container {
@@ -38,7 +32,13 @@ body {
   border-radius: 10px;
   aspect-ratio: 16 / 9; /* Maintain a consistent aspect ratio */
   transition: box-shadow 0.2s ease;
-  touch-action: none; /* Disable browser handling of all panning and zooming gestures */
+  user-select: none;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  /* touch-action: none;  Disable browser handling of all panning and zooming gestures */
 }
 
 .image-slider .before,
@@ -102,8 +102,10 @@ body {
   background: rgba(255, 255, 255, 0.1);
 }
 
+/*
 .image-slider,
 .slider-line,
 .slider-line::before {
   touch-action: pan-y; /* Allow vertical scrolling */
 }
+*/
