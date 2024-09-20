@@ -14,6 +14,9 @@ window.addEventListener("load", () => {
       this.touchStartX = 0;
       this.touchStartY = 0;
       this.isScrolling = false;
+      this.scrollLockTimeout = null;
+      this.sliderMiddleWidth = 40; // Width of the middle area in pixels
+      this.isMiddleTouch = false;
 
       // Bind event handlers once and store references for later removal
       this.startDragBound = this.startDrag.bind(this);
@@ -250,21 +253,45 @@ window.addEventListener("load", () => {
     }
 
     handleTouchStart(e) {
-      e.preventDefault(); // Prevent default touch behavior
       this.touchStartX = e.touches[0].clientX;
       this.touchStartY = e.touches[0].clientY;
-      this.isDragging = true; // Start dragging immediately
-      this.startDrag(e); // Call startDrag to set initial position
+      this.isDragging = false;
+
+      // Check if the touch is within the slider's middle area
+      const rect = this.slider.getBoundingClientRect();
+      const middleX = rect.left + rect.width / 2;
+      if (Math.abs(this.touchStartX - middleX) < this.sliderMiddleWidth / 2) {
+        this.isMiddleTouch = true;
+        e.preventDefault(); // Prevent default only for middle touches
+      } else {
+        this.isMiddleTouch = false;
+      }
     }
 
     handleTouchMove(e) {
-      if (!this.isDragging) return;
-      e.preventDefault(); // Prevent scrolling
-      this.onDrag(e);
+      const touchX = e.touches[0].clientX;
+      const touchY = e.touches[0].clientY;
+      const deltaX = touchX - this.touchStartX;
+      const deltaY = touchY - this.touchStartY;
+
+      if (!this.isDragging && this.isMiddleTouch) {
+        // Start dragging if it's a horizontal movement in the middle area
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+          this.isDragging = true;
+          this.startDrag(e);
+        }
+      }
+
+      if (this.isDragging) {
+        e.preventDefault(); // Prevent scrolling only if we're dragging
+        this.onDrag(e);
+      }
     }
 
     handleTouchEnd(e) {
       this.isDragging = false;
+      this.isMiddleTouch = false;
+      this.stopDrag();
     }
   }
 
