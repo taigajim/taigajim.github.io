@@ -72,7 +72,7 @@ body {
   cursor: col-resize;
   transform: translateX(-50%); /* Center the line on its left edge */
   transition: background-color 0.1s ease;
-  touch-action: none; /* Disable browser handling of all panning and zooming gestures */
+  /*  touch-action: none; /* Disable browser handling of all panning and zooming gestures */
 }
 
 /* Expanded hit area for slider-line */
@@ -85,7 +85,7 @@ body {
   right: -20px; /* Half of sliderMiddleWidth */
   background: rgba(255, 255, 255, 0);
   cursor: col-resize;
-  touch-action: none; /* Disable browser handling of all panning and zooming gestures */
+  /* touch-action: none; /* Disable browser handling of all panning and zooming gestures */
 }
 
 .slider-line:active,
