@@ -1,7 +1,5 @@
 window.addEventListener("load", () => {
   const slidersContainer = document.getElementById("sliders-container");
-  // Remove this line:
-  // const loadingElement = document.getElementById("loading");
 
   class Slider {
     constructor(sliderElement) {
@@ -11,16 +9,11 @@ window.addEventListener("load", () => {
       this.percentage = parseInt(this.slider.dataset.percentage) || 50;
       this.isDragging = false;
       this.animationFrame = null;
-      this.touchStartX = 0;
-      this.touchStartY = 0;
-      this.isScrolling = false;
 
       // Bind event handlers once and store references for later removal
       this.startDragBound = this.startDrag.bind(this);
       this.handleMouseMove = this.onDrag.bind(this);
-      this.handleTouchMove = this.onDrag.bind(this);
       this.handleMouseUp = this.stopDrag.bind(this);
-      this.handleTouchEnd = this.stopDrag.bind(this);
       this.handleResize = this.debounce(this.updateSlider.bind(this), 100);
 
       this.init();
@@ -28,7 +21,7 @@ window.addEventListener("load", () => {
 
     init() {
       this.setupElements();
-      this.showContent(); // Show content immediately
+      this.showContent();
       this.waitForImages()
         .then(() => {
           this.isReady = true;
@@ -76,16 +69,13 @@ window.addEventListener("load", () => {
       const dragInitiators = [this.sliderLine, this.slider];
       dragInitiators.forEach((element) => {
         element.addEventListener("mousedown", this.startDragBound);
-        element.addEventListener("touchstart", this.handleTouchStart.bind(this), { passive: true });
       });
 
       // Event listeners for dragging
       window.addEventListener("mousemove", this.handleMouseMove);
-      window.addEventListener("touchmove", this.handleTouchMove.bind(this), { passive: false });
 
       // Event listeners for stopping drag
       window.addEventListener("mouseup", this.handleMouseUp);
-      window.addEventListener("touchend", this.handleTouchEnd.bind(this), { passive: true });
 
       // Prevent click on marks from triggering the slider click event
       [this.leftMark, this.rightMark].forEach((mark) => {
@@ -103,8 +93,6 @@ window.addEventListener("load", () => {
     checkAllSlidersReady() {
       if (Array.from(document.querySelectorAll(".image-slider")).every((slider) => slider.__slider && slider.__slider.isReady)) {
         console.log("All sliders ready");
-        // Remove this line:
-        // loadingElement.style.display = "none";
       }
     }
 
@@ -112,16 +100,8 @@ window.addEventListener("load", () => {
       e.preventDefault();
       this.isDragging = true;
 
-      let clientX;
-      if (e.type.startsWith("touch")) {
-        if (e.touches.length === 0) return;
-        clientX = e.touches[0].clientX;
-      } else {
-        clientX = e.clientX;
-      }
-
       const rect = this.slider.getBoundingClientRect();
-      let percentage = ((clientX - rect.left) / rect.width) * 100;
+      let percentage = ((e.clientX - rect.left) / rect.width) * 100;
       percentage = Math.max(0, Math.min(100, percentage));
 
       // Animate smoothly to the new position
@@ -137,16 +117,8 @@ window.addEventListener("load", () => {
         this.animationFrame = null;
       }
 
-      let clientX;
-      if (e.type.startsWith("touch")) {
-        if (e.touches.length === 0) return;
-        clientX = e.touches[0].clientX;
-      } else {
-        clientX = e.clientX;
-      }
-
       const rect = this.slider.getBoundingClientRect();
-      let percentage = ((clientX - rect.left) / rect.width) * 100;
+      let percentage = ((e.clientX - rect.left) / rect.width) * 100;
       percentage = Math.max(0, Math.min(100, percentage));
       this.percentage = percentage;
       this.slider.dataset.percentage = percentage;
@@ -217,58 +189,19 @@ window.addEventListener("load", () => {
       };
     }
 
-    // Prevent Memory Leaks: Add destroy method to remove event listeners
     destroy() {
       // Consolidate Drag Initiators: Remove event listeners
       const dragInitiators = [this.sliderLine, this.leftMark, this.rightMark, this.slider];
       dragInitiators.forEach((element) => {
         element.removeEventListener("mousedown", this.startDragBound);
-        element.removeEventListener("touchstart", this.handleTouchStart);
       });
 
       // Remove dragging event listeners
       window.removeEventListener("mousemove", this.handleMouseMove);
-      window.removeEventListener("touchmove", this.handleTouchMove);
       window.removeEventListener("mouseup", this.handleMouseUp);
-      window.removeEventListener("touchend", this.handleTouchEnd);
 
       // Remove resize event listener
       window.removeEventListener("resize", this.handleResize);
-    }
-
-    handleTouchStart(e) {
-      this.touchStartX = e.touches[0].clientX;
-      this.touchStartY = e.touches[0].clientY;
-      this.isScrolling = false;
-      this.isDragging = false; // Start as not dragging
-    }
-
-    handleTouchMove(e) {
-      const touchX = e.touches[0].clientX;
-      const touchY = e.touches[0].clientY;
-      const deltaX = touchX - this.touchStartX;
-      const deltaY = touchY - this.touchStartY;
-
-      // If we haven't determined the gesture yet
-      if (!this.isScrolling && !this.isDragging) {
-        // Check if it's more of a vertical movement (scroll) or horizontal movement (drag)
-        if (Math.abs(deltaY) > Math.abs(deltaX)) {
-          this.isScrolling = true;
-        } else if (Math.abs(deltaX) > 10) {
-          // Add a small threshold for drag
-          this.isDragging = true;
-        }
-      }
-
-      if (this.isDragging) {
-        e.preventDefault(); // Prevent scrolling only if we're dragging the slider
-        this.onDrag(e);
-      }
-    }
-
-    handleTouchEnd(e) {
-      this.isDragging = false;
-      this.isScrolling = false;
     }
   }
 
