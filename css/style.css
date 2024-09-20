@@ -27,7 +27,7 @@ body {
   padding: 20px 0;
   width: 100%;
   flex-grow: 1;
-  visibility: hidden; /* Initially hidden, will be shown by JavaScript */
+  visibility: visible; /* Change this from hidden to visible */
 }
 
 .image-slider {
@@ -37,7 +37,6 @@ body {
   overflow: hidden;
   border-radius: 10px;
   aspect-ratio: 16 / 9; /* Maintain a consistent aspect ratio */
-  visibility: visible; /* Always visible */
   transition: box-shadow 0.2s ease;
   touch-action: none; /* Disable browser handling of all panning and zooming gestures */
 }
@@ -101,29 +100,4 @@ body {
 
 .image-slider.dragging .slider-line::before {
   background: rgba(255, 255, 255, 0.1);
-}
-
-/* Slider Marks */
-.slider-mark {
-  width: 1px;
-  height: 20px;
-  background-color: rgba(255, 255, 255, 0.7);
-  position: absolute;
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
-  z-index: 11;
-}
-
-.slider-mark.left {
-  transform: translate(-6px, -50%);
-}
-
-.slider-mark.right {
-  transform: translate(6px, -50%);
-}
-
-/* Remove the ::after pseudo-element */
-.slider-mark::after {
-  display: none;
 }

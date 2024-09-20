@@ -21,7 +21,6 @@ window.addEventListener("load", () => {
 
     init() {
       this.setupElements();
-      this.showContent();
       this.waitForImages()
         .then(() => {
           this.isReady = true;
@@ -34,24 +33,13 @@ window.addEventListener("load", () => {
           this.displayError();
         })
         .finally(() => {
-          this.checkAllSlidersReady();
+          this.checkAllSlidersReady(); //only for logging
         });
     }
 
     setupElements() {
-      // Create slider line with marks
       this.sliderLine = document.createElement("div");
       this.sliderLine.classList.add("slider-line");
-
-      this.leftMark = document.createElement("span");
-      this.leftMark.classList.add("slider-mark", "left");
-
-      this.rightMark = document.createElement("span");
-      this.rightMark.classList.add("slider-mark", "right");
-
-      this.sliderLine.appendChild(this.leftMark);
-      this.sliderLine.appendChild(this.rightMark);
-
       this.slider.appendChild(this.sliderLine);
     }
 
@@ -61,35 +49,30 @@ window.addEventListener("load", () => {
     }
 
     attachEvents() {
-      // Disable image dragging
       this.beforeImage.draggable = false;
       this.afterImage.draggable = false;
 
-      // Consolidate Drag Initiators: Manage with an array
-      const dragInitiators = [this.sliderLine, this.slider];
-      dragInitiators.forEach((element) => {
+      // Use both slider and sliderLine for interactions
+      [this.slider, this.sliderLine].forEach((element) => {
         element.addEventListener("mousedown", this.startDragBound);
+        element.addEventListener("click", this.handleClickBound);
       });
 
-      // Event listeners for dragging
       window.addEventListener("mousemove", this.handleMouseMove);
-
-      // Event listeners for stopping drag
       window.addEventListener("mouseup", this.handleMouseUp);
-
-      // Prevent click on marks from triggering the slider click event
-      [this.leftMark, this.rightMark].forEach((mark) => {
-        mark.addEventListener("click", (e) => e.stopPropagation());
-      });
-
-      // Debounce Resize Events
       window.addEventListener("resize", this.handleResize);
     }
 
-    showContent() {
-      this.slider.style.visibility = "visible";
+    handleClick(e) {
+      if (!this.isDragging) {
+        const rect = this.slider.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        this.percentage = (x / rect.width) * 100;
+        this.updateSlider();
+      }
     }
 
+    // Check if all sliders are ready, used for debugging
     checkAllSlidersReady() {
       if (Array.from(document.querySelectorAll(".image-slider")).every((slider) => slider.__slider && slider.__slider.isReady)) {
         console.log("All sliders ready");
@@ -97,21 +80,18 @@ window.addEventListener("load", () => {
     }
 
     startDrag(e) {
-      e.preventDefault();
       this.isDragging = true;
 
       const rect = this.slider.getBoundingClientRect();
       let percentage = ((e.clientX - rect.left) / rect.width) * 100;
       percentage = Math.max(0, Math.min(100, percentage));
 
-      // Animate smoothly to the new position
       this.animateTo(percentage, 150);
     }
 
     onDrag(e) {
       if (!this.isDragging) return;
 
-      // Prevent jumpiness by canceling ongoing animations
       if (this.animationFrame) {
         cancelAnimationFrame(this.animationFrame);
         this.animationFrame = null;
@@ -208,7 +188,6 @@ window.addEventListener("load", () => {
   // Initialize Sliders
   function initializeSliders() {
     console.log("Initializing sliders");
-    slidersContainer.style.visibility = "visible";
     const sliders = document.querySelectorAll(".image-slider");
     sliders.forEach((slider, index) => {
       console.log(`Initializing slider ${index + 1}`);
