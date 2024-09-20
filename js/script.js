@@ -17,6 +17,7 @@ window.addEventListener("load", () => {
       this.scrollLockTimeout = null;
       this.sliderMiddleWidth = 40; // Width of the middle area in pixels
       this.isMiddleTouch = false;
+      this.isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
       // Bind event handlers once and store references for later removal
       this.startDragBound = this.startDrag.bind(this);
@@ -95,6 +96,11 @@ window.addEventListener("load", () => {
       // Event listeners for stopping drag
       window.addEventListener("mouseup", this.handleMouseUp);
       window.addEventListener("touchend", this.handleTouchEnd.bind(this), { passive: true });
+
+      // Prevent text selection on touch devices
+      if (this.isTouchDevice) {
+        this.slider.addEventListener("selectstart", (e) => e.preventDefault());
+      }
 
       // Prevent click on marks from triggering the slider click event
       [this.leftMark, this.rightMark].forEach((mark) => {
@@ -253,6 +259,7 @@ window.addEventListener("load", () => {
     }
 
     handleTouchStart(e) {
+      e.preventDefault(); // Prevent default touch behavior
       this.touchStartX = e.touches[0].clientX;
       this.touchStartY = e.touches[0].clientY;
       this.isDragging = false;
@@ -262,29 +269,27 @@ window.addEventListener("load", () => {
       const middleX = rect.left + rect.width / 2;
       if (Math.abs(this.touchStartX - middleX) < this.sliderMiddleWidth / 2) {
         this.isMiddleTouch = true;
-        e.preventDefault(); // Prevent default only for middle touches
+        this.startDrag(e); // Start dragging immediately for touch devices
       } else {
         this.isMiddleTouch = false;
       }
     }
 
     handleTouchMove(e) {
-      const touchX = e.touches[0].clientX;
-      const touchY = e.touches[0].clientY;
-      const deltaX = touchX - this.touchStartX;
-      const deltaY = touchY - this.touchStartY;
-
-      if (!this.isDragging && this.isMiddleTouch) {
-        // Start dragging if it's a horizontal movement in the middle area
-        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
-          this.isDragging = true;
-          this.startDrag(e);
-        }
-      }
-
       if (this.isDragging) {
         e.preventDefault(); // Prevent scrolling only if we're dragging
         this.onDrag(e);
+      } else if (this.isMiddleTouch) {
+        const touchX = e.touches[0].clientX;
+        const touchY = e.touches[0].clientY;
+        const deltaX = touchX - this.touchStartX;
+        const deltaY = touchY - this.touchStartY;
+
+        // Start dragging if it's a horizontal movement in the middle area
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+          this.isDragging = true;
+          this.onDrag(e);
+        }
       }
     }
 
