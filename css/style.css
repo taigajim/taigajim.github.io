@@ -109,3 +109,9 @@ body {
   touch-action: pan-y;
 }
 */
+
+.image-slider,
+.slider-line,
+.slider-line::before {
+  touch-action: pan-y;
+}
