@@ -67,7 +67,7 @@ window.addEventListener("load", () => {
     }
 
     handleDragStart(e) {
-      e.preventDefault(); // Prevent default behavior for both mouse and touch
+      // e.preventDefault(); // Remove this line
       this.isDragging = true;
 
       const clientX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
