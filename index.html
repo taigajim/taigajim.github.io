@@ -6,7 +6,6 @@
     <title>le git de taigajim</title>
     <style>
       :root {
-        /* colors */
         --COLOR_BG: #0d1117;
         --COLOR_TEXT: #c9d1d9;
         --COLOR_MUTED: #7d8590;
@@ -16,13 +15,7 @@
         --COLOR_ACCENT_HOVER: #79c0ff;
         --COLOR_CARD_BG: #161b22;
         --COLOR_CARD_BORDER: #30363d;
-        --COLOR_SUCCESS: #238636;
-        --COLOR_SUCCESS_HOVER: #2ea043;
-
-        /* sizing */
         --RADIUS_MD: 6px;
-
-        /* motion */
         --TRANSITION_FAST: 150ms ease;
       }
       body {
@@ -48,7 +41,6 @@
         margin-bottom: 2em;
         font-size: 1.2em;
       }
-      /* .main-link styles removed (unused) */
       .projects {
         margin-top: 50px;
         text-align: left;
@@ -58,7 +50,6 @@
         border-bottom: 1px solid var(--COLOR_CARD_BORDER);
         padding-bottom: 10px;
       }
-      /* project as a full-card button (anchor) */
       .project {
         display: block;
         margin: 20px 0;
@@ -97,11 +88,6 @@
         color: var(--COLOR_SUBTEXT);
         margin-top: 8px;
       }
-      footer {
-        margin-top: 60px;
-        color: var(--COLOR_MUTED);
-        font-size: 0.9em;
-      }
       @media (prefers-reduced-motion: reduce) {
         .project {
           transition: box-shadow var(--TRANSITION_FAST), border-color var(--TRANSITION_FAST), background-color var(--TRANSITION_FAST), color var(--TRANSITION_FAST);
@@ -122,30 +108,16 @@
       <div class="projects">
         <h2>projects</h2>
 
+        <a class="project" href="/slipcut/">
+          <div class="project-title">slipcut</div>
+          <div class="project-desc">browser-based audio slicer & remix tool</div>
+        </a>
+
         <a class="project" href="https://github.com/taigajim/image-slider">
           <div class="project-title">image Slider</div>
           <div class="project-desc">stack-based image slider</div>
         </a>
-
-        <a class="project" href="https://taigajim.com/dev/globe">
-          <div class="project-title">globe visualizer</div>
-          <div class="project-desc">globe visualizer with custom shaders</div>
-        </a>
-
-        <a class="project" href="https://taigajim.com/dev/space-cab">
-          <div class="project-title">space cab</div>
-          <div class="project-desc">space taxi game C64 style, built with Phaser.js</div>
-        </a>
-
-        <a class="project" href="https://taigajim.com/dev/lavender-drip">
-          <div class="project-title">lavender drip</div>
-          <div class="project-desc">art canvas with "fluid" dynamics</div>
-        </a>
       </div>
-
-      <footer>
-        <p>More projects and experiments at <a href="https://taigajim.com">taigajim.com</a></p>
-      </footer>
     </div>
   </body>
 </html>
