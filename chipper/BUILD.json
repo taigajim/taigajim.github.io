@@ -1,8 +1,8 @@
 {
   "name": "chipper",
   "version": "1.0.0",
-  "builtAt": "2026-07-11T21:42:50.402Z",
-  "sourceCommit": "c2dce5aef44b7048e2a3ed91301ae97a01c91a92",
+  "builtAt": "2026-07-11T21:49:06.188Z",
+  "sourceCommit": "92c3eb2ac3c50fc561f2577ae8cefceb00732b53",
   "sourceDirty": false,
   "files": {
     "THIRD_PARTY_NOTICES.txt": {
@@ -22,8 +22,8 @@
       "sha256": "28429d1f31e9662a87aa61bc7c6a580465a8366e2b783cc678222b9943154228"
     },
     "chipper.min.js": {
-      "bytes": 91184,
-      "sha256": "b05483664f11016951cf162415f97671a634fc60b2b9c1c79391058b513ad194"
+      "bytes": 91185,
+      "sha256": "3a5b3bd4eca588905f7a2a470ec52ed10d98074b2bf886231503069af60d8548"
     },
     "index.html": {
       "bytes": 2062,
