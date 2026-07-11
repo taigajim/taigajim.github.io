@@ -1,8 +1,8 @@
 {
   "name": "chipper",
-  "version": "1.0.0",
-  "builtAt": "2026-07-11T21:49:06.188Z",
-  "sourceCommit": "92c3eb2ac3c50fc561f2577ae8cefceb00732b53",
+  "version": "1.0.1",
+  "builtAt": "2026-07-11T21:50:48.105Z",
+  "sourceCommit": "3960d1ee8bf5812e39956a7bb7f9e1dd3bd0704e",
   "sourceDirty": false,
   "files": {
     "THIRD_PARTY_NOTICES.txt": {
@@ -14,8 +14,8 @@
       "sha256": "82143d52d2a6ea4d61150d0aeb92e3a9a5ff278dc61b4ccbce4815a7c205511c"
     },
     "audio-worklet.min.js": {
-      "bytes": 1815,
-      "sha256": "aeef8606417fa50af2c6d7fba5699249ed719f5a98c64c66edad598e90cbe994"
+      "bytes": 1823,
+      "sha256": "225221b7657fd65518f62df4a8affa0640e2feeb8c0c11cbd3b8dc04d1592a61"
     },
     "chipper.min.css": {
       "bytes": 3702,
@@ -23,19 +23,19 @@
     },
     "chipper.min.js": {
       "bytes": 91185,
-      "sha256": "3a5b3bd4eca588905f7a2a470ec52ed10d98074b2bf886231503069af60d8548"
+      "sha256": "b73b0a9ce72d938c9d4299caab6e951169293f6c6ed408f768333e184cec6d76"
     },
     "index.html": {
-      "bytes": 2062,
-      "sha256": "be802beec9c305fb8dd37d16bee96ebcc713e559626b179798250d17359490a2"
+      "bytes": 2078,
+      "sha256": "60970937007f8d599a09ea6fc37f94daf7c109c46ede25a023dd4b303bc922e7"
     },
     "pt.min.js": {
       "bytes": 16283,
-      "sha256": "ab614cab86f799b7f645d6d2c38be26bbb6620697f205a83e64cb37f32022b7a"
+      "sha256": "6b6aa007eb599802b0788dfc085e9ca954abb1976b64baecf5c36655addf6d5e"
     },
     "render-worker.min.js": {
-      "bytes": 1400,
-      "sha256": "323eaaa0901956b538fac42d2111dcb605059d456894afacd3cfab4cd13154d4"
+      "bytes": 1408,
+      "sha256": "9dbd6b38525870e81d70f73de35066c3809d8d883df88bc9813a66688b28655e"
     },
     "robots.txt": {
       "bytes": 26,
