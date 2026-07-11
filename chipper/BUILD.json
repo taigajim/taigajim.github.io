@@ -1,0 +1,45 @@
+{
+  "name": "chipper",
+  "version": "1.0.0",
+  "builtAt": "2026-07-11T21:42:50.402Z",
+  "sourceCommit": "c2dce5aef44b7048e2a3ed91301ae97a01c91a92",
+  "sourceDirty": false,
+  "files": {
+    "THIRD_PARTY_NOTICES.txt": {
+      "bytes": 19395,
+      "sha256": "801a596df8d4d91eaf52a43a54d24cf0e3f6e265d202b7d8fdc523c1bf57bf8c"
+    },
+    "assets/topaz.ttf": {
+      "bytes": 24676,
+      "sha256": "82143d52d2a6ea4d61150d0aeb92e3a9a5ff278dc61b4ccbce4815a7c205511c"
+    },
+    "audio-worklet.min.js": {
+      "bytes": 1815,
+      "sha256": "aeef8606417fa50af2c6d7fba5699249ed719f5a98c64c66edad598e90cbe994"
+    },
+    "chipper.min.css": {
+      "bytes": 3702,
+      "sha256": "28429d1f31e9662a87aa61bc7c6a580465a8366e2b783cc678222b9943154228"
+    },
+    "chipper.min.js": {
+      "bytes": 91184,
+      "sha256": "b05483664f11016951cf162415f97671a634fc60b2b9c1c79391058b513ad194"
+    },
+    "index.html": {
+      "bytes": 2062,
+      "sha256": "be802beec9c305fb8dd37d16bee96ebcc713e559626b179798250d17359490a2"
+    },
+    "pt.min.js": {
+      "bytes": 16283,
+      "sha256": "ab614cab86f799b7f645d6d2c38be26bbb6620697f205a83e64cb37f32022b7a"
+    },
+    "render-worker.min.js": {
+      "bytes": 1400,
+      "sha256": "323eaaa0901956b538fac42d2111dcb605059d456894afacd3cfab4cd13154d4"
+    },
+    "robots.txt": {
+      "bytes": 26,
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1"
+    }
+  }
+}
